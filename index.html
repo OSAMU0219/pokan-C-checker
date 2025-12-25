@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <title>お口ポカンチェッカー（結果シンプル版）</title>
+  <title>お口ポカンチェッカー（v3・最終安定版）</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- MediaPipe -->
@@ -11,120 +11,69 @@
 
   <style>
     body{
-      margin:0;
-      background:#222;
-      color:#fff;
+      margin:0;background:#222;color:#fff;
       font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-      display:flex;
-      justify-content:center;
-      padding:10px;
-      box-sizing:border-box;
+      display:flex;justify-content:center;padding:10px;box-sizing:border-box;
     }
     #layout{
-      display:flex;
-      gap:12px;
-      align-items:flex-start;
+      display:flex;gap:12px;align-items:flex-start;
       width:min(980px, 100%);
     }
-    #left{
-      display:flex;
-      flex-direction:column;
-      align-items:center;
-      flex: 1;
-      min-width: 320px;
-    }
-    #controlRow{
-      display:flex;
-      gap:8px;
-      flex-wrap:wrap;
-      justify-content:center;
-    }
+    #left{display:flex;flex-direction:column;align-items:center;flex:1;min-width:320px;}
+    #controlRow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+
     .ctrlBtn{
-      padding:8px 16px;
-      border-radius:999px;
-      border:none;
-      font-weight:bold;
-      cursor:pointer;
+      padding:8px 16px;border-radius:999px;border:none;
+      font-weight:bold;cursor:pointer;
     }
     .ctrlBtn:disabled{opacity:.4;cursor:default;}
     #startBtn{background:#1976d2;color:#fff;}
     #pauseBtn{background:#ffb300;color:#000;}
     #stopBtn{background:#757575;color:#fff;}
-    #saveBtn{background:#26a69a;color:#fff;}
 
     #wrap{
-      margin-top:8px;
-      width:min(95vw,480px);
-      padding:14px;
-      border:18px solid #2e7d32; /* closed = green */
-      border-radius:26px;
-      background:#111;
-      transition: border-color .15s ease, border-width .15s ease;
+      margin-top:8px;width:min(95vw,480px);
+      padding:14px;border:18px solid #2e7d32;border-radius:26px;
+      background:#111;transition:border-color .15s ease,border-width .15s ease;
       box-sizing:border-box;
     }
-    #wrap.open{
-      border-color:#e53935; /* open = red */
-      border-width:20px;
-    }
+    #wrap.open{border-color:#e53935;border-width:20px;}
 
     video{display:none;}
-    canvas{
-      width:100%;
-      height:auto;
-      border-radius:16px;
-      background:#000;
-      display:block;
-    }
+    canvas{width:100%;height:auto;border-radius:16px;background:#000;display:block;}
 
     #status{
-      margin-top:8px;
-      padding:8px 14px;
-      border-radius:999px;
-      font-weight:bold;
-      text-align:center;
-      min-width:min(80vw, 340px);
+      margin-top:8px;padding:8px 14px;border-radius:999px;
+      font-weight:bold;text-align:center;min-width:min(80vw,340px);
       background:#1976d2;
     }
 
+    /* 結果（4項目だけ） */
     #resultBox{
-      margin-top:10px;
-      width:min(95vw, 480px);
-      background:#2b2b2b;
-      border-radius:16px;
-      padding:10px 12px;
-      box-sizing:border-box;
-      font-size:14px;
-      line-height:1.7;
+      margin-top:10px;width:min(95vw,480px);
+      background:#2b2b2b;border-radius:16px;padding:10px 12px;
+      box-sizing:border-box;font-size:14px;line-height:1.7;
     }
-    #resultBox .label{opacity:.85; margin-right:6px;}
-    #resultBox .value{font-weight:700;}
-    #clinic{
-      margin-top:8px;
-      font-weight:700;
-      opacity:.95;
+    #resultBox .label{opacity:.85;margin-right:6px;}
+    #resultBox .value{font-weight:900;}
+
+    #appName{
+      margin-top:10px;
+      font-size:18px;
+      font-weight:900;
+      letter-spacing:0.04em;
+      opacity:0.95;
     }
 
     /* Right panel (compact) */
     #right{
-      background:#333;
-      padding:12px;
-      border-radius:16px;
-      width:170px;
-      height:fit-content;      /* ← 伸びない */
-      align-self:flex-start;   /* ← 伸びない */
-      box-sizing:border-box;
+      background:#333;padding:12px;border-radius:16px;width:170px;
+      height:fit-content;align-self:flex-start;box-sizing:border-box;
     }
-    #rightTitle{font-weight:800;margin-bottom:6px;}
+    #rightTitle{font-weight:900;margin-bottom:6px;}
     .timerBtn{
-      width:100%;
-      margin:4px 0;
-      padding:8px;
-      border-radius:999px;
-      border:none;
-      background:#555;
-      color:#fff;
-      font-weight:800;
-      cursor:pointer;
+      width:100%;margin:4px 0;padding:8px;border-radius:999px;border:none;
+      background:#555;color:#fff;font-weight:900;cursor:pointer;
     }
     .timerBtn.active{background:#ffb300;color:#000;}
     #selectedLabel{margin-top:6px;font-size:12px;opacity:.9;}
@@ -145,7 +94,6 @@
         <button id="startBtn" class="ctrlBtn">計測スタート</button>
         <button id="pauseBtn" class="ctrlBtn" disabled>中断</button>
         <button id="stopBtn"  class="ctrlBtn" disabled>中止</button>
-        <button id="saveBtn"  class="ctrlBtn" disabled>結果保存CSV</button>
       </div>
 
       <div id="wrap">
@@ -155,7 +103,7 @@
 
       <div id="status">準備中…（カメラ許可を確認してください）</div>
 
-      <!-- 結果（必要な4項目だけ） -->
+      <!-- 結果（4項目のみ） -->
       <div id="resultBox">
         <div><span class="label">日時：</span><span id="resultDate" class="value">—</span></div>
         <div><span class="label">閉じていた時間：</span><span id="closedTime" class="value">00:00</span></div>
@@ -163,7 +111,7 @@
         <div><span class="label">ポカン率：</span><span id="openRate" class="value">0</span><span class="value">%</span></div>
       </div>
 
-      <div id="clinic">🌻 ひまわり矯正・小児歯科</div>
+      <div id="appName">お口ポカンチェッカー</div>
     </div>
 
     <!-- RIGHT -->
@@ -178,8 +126,10 @@
   </div>
 
   <!-- 🔊 音（同じフォルダに置く） -->
-  <audio id="alert"   src="pokan_checker_30s_tempo_up_v4.mp3" preload="auto"></audio>
-  <audio id="success" src="pokan_success_kiran_v3.mp3" preload="auto"></audio>
+  <!-- BGM（口が開いたら流れる） -->
+  <audio id="alert" src="pokan_checker_30s_tempo_up_v3.mp3" preload="auto" playsinline></audio>
+  <!-- キラン（口を閉じたら鳴る） -->
+  <audio id="success" src="pokan_success_kiran_v3.mp3" preload="auto" playsinline></audio>
 
   <script>
     /* ====== 設定 ====== */
@@ -196,7 +146,6 @@
     const startBtn = document.getElementById("startBtn");
     const pauseBtn = document.getElementById("pauseBtn");
     const stopBtn  = document.getElementById("stopBtn");
-    const saveBtn  = document.getElementById("saveBtn");
 
     const timerBtns = document.querySelectorAll(".timerBtn");
     const selectedMinEl = document.getElementById("selectedMin");
@@ -221,7 +170,9 @@
     let openElapsed  = 0;      // 秒
 
     let wasOpen = false;
-    let lastResultIso = null;
+
+    // 日時（日本時間表示用）
+    let lastResultText = null;
 
     /* ====== util ====== */
     function fmt(sec){
@@ -230,6 +181,18 @@
       const s = Math.floor(sec % 60);
       return String(m).padStart(2,"0") + ":" + String(s).padStart(2,"0");
     }
+
+    // 日本時間の表示文字列
+    function nowJSTText(){
+      const d = new Date();
+      const y = d.getFullYear();
+      const mo = String(d.getMonth()+1).padStart(2,"0");
+      const da = String(d.getDate()).padStart(2,"0");
+      const h  = String(d.getHours()).padStart(2,"0");
+      const mi = String(d.getMinutes()).padStart(2,"0");
+      return `${y}-${mo}-${da} ${h}:${mi}`;
+    }
+
     function updateResultUI(){
       const closedSec = Math.max(0, totalElapsed - openElapsed);
       const rate = Math.round(openElapsed / Math.max(totalElapsed, 0.1) * 100);
@@ -239,35 +202,42 @@
       openRateEl.textContent   = String(rate);
     }
 
-    /* ====== 音の解放（iOS/Chrome対策） ====== */
+    /* ====== 音の解放（重要） ====== */
     async function unlockAudio(){
       try{
-        // v4
+        // BGM
         alertSound.muted = true;
         await alertSound.play();
         alertSound.pause();
         alertSound.currentTime = 0;
         alertSound.muted = false;
 
-        // kiran
+        // キラン
         successSound.muted = true;
         await successSound.play();
         successSound.pause();
         successSound.currentTime = 0;
         successSound.muted = false;
       }catch(e){
-        // ここで止めない（無反応防止）
+        // ここで止めない
       }
     }
+
+    /* ====== BGM確実制御 ====== */
+    function playAlert(){
+      if (!alertSound.paused) return; // 二重再生防止
+      alertSound.loop = true;
+      alertSound.volume = 1.0;
+      alertSound.currentTime = 0;
+      alertSound.play().catch(()=>{});
+    }
+
     function stopAlert(){
+      if (alertSound.paused) return;
       alertSound.pause();
       alertSound.currentTime = 0;
     }
-    function playAlert(){
-      // v4が「読み込みできてない」場合でも止まらないようにする
-      alertSound.loop = true;
-      alertSound.play().catch(()=>{});
-    }
+
     function playKiran(){
       successSound.currentTime = 0;
       successSound.play().catch(()=>{});
@@ -297,19 +267,19 @@
     });
 
     faceMesh.onResults((res)=>{
+      // 描画
       ctx.clearRect(0,0,canvas.width,canvas.height);
       if(res.image) ctx.drawImage(res.image,0,0,canvas.width,canvas.height);
 
+      // 時間
       const now = performance.now()/1000;
-
-      // deltaは常にここで1回だけ計算（止まらない）
       let delta = 0;
       if(lastTs !== null) delta = now - lastTs;
       lastTs = now;
 
       const hasFace = !!(res.multiFaceLandmarks && res.multiFaceLandmarks.length>0);
 
-      // 口判定（顔がない時は閉口扱い）
+      // 口判定
       let isOpen = false;
       if(hasFace){
         const lm = res.multiFaceLandmarks[0];
@@ -317,20 +287,19 @@
         isOpen = diff > OPEN_THRESHOLD;
       }
 
-      // 計測中：時間加算（顔がなくても total は進める）
+      // 計測中：時間加算（顔がなくてもtotalは進める）
       if(started && !paused){
         totalElapsed += delta;
         if(isOpen) openElapsed += delta;
         updateResultUI();
 
-        // 終了判定
         if(totalElapsed >= totalTimeSec){
           finishMeasurement();
           return;
         }
       }
 
-      // 表示（顔がない時）
+      // 顔がない時（計測中はBGM停止）
       if(!hasFace){
         if(started && !paused){
           statusBox.textContent = "顔を正面に向けてね 🙂";
@@ -339,37 +308,41 @@
           statusBox.textContent = "準備OK。計測スタートを押してください。";
           statusBox.style.background = "#1976d2";
         }
-        // 誤警告防止で音と枠を戻す
         stopAlert();
         wrap.classList.remove("open");
         wasOpen = false;
         return;
       }
 
-      // 状態遷移（計測中だけ）
-      if(started && !paused){
-        if(!wasOpen && isOpen){
+      // 口の状態変化だけでBGMを制御
+      if (started && !paused) {
+        if (isOpen && !wasOpen) {
+          // 閉 → 開
+          playAlert();
           wrap.classList.add("open");
           statusBox.textContent = "お口：あいてるよ 😮";
           statusBox.style.background = "#e53935";
-          playAlert();
         }
-        if(wasOpen && !isOpen){
+
+        if (!isOpen && wasOpen) {
+          // 開 → 閉
+          stopAlert();
+          playKiran();
           wrap.classList.remove("open");
           statusBox.textContent = "お口：とじてるね 👍";
           statusBox.style.background = "#43a047";
-          stopAlert();
-          playKiran();
         }
-        wasOpen = isOpen;
-      }else{
-        // 計測前
-        statusBox.textContent = "準備OK。計測スタートを押してください。";
-        statusBox.style.background = "#1976d2";
-        wrap.classList.remove("open");
+      } else {
+        // 計測していない/中断中は必ず止める
         stopAlert();
-        wasOpen = false;
+        wrap.classList.remove("open");
+        if (!started) {
+          statusBox.textContent = "準備OK。計測スタートを押してください。";
+          statusBox.style.background = "#1976d2";
+        }
       }
+
+      wasOpen = isOpen;
     });
 
     const camera = new Camera(video, {
@@ -380,13 +353,6 @@
     camera.start();
 
     /* ====== 計測制御 ====== */
-    function resetMeasurementUI(){
-      closedTimeEl.textContent = "00:00";
-      openTimeEl.textContent   = "00:00";
-      openRateEl.textContent   = "0";
-      // 日時は開始時に入れる
-    }
-
     function startMeasurement(){
       started = true;
       paused = false;
@@ -396,27 +362,23 @@
       lastTs = null;
       wasOpen = false;
 
-      const iso = new Date().toISOString();
-      lastResultIso = iso;
-      resultDateEl.textContent = iso.replace("T"," ").replace("Z","");
+      lastResultText = nowJSTText();
+      resultDateEl.textContent = lastResultText;
 
-      resetMeasurementUI();
       updateResultUI();
 
       startBtn.disabled = true;
       pauseBtn.disabled = false;
       stopBtn.disabled  = false;
-      saveBtn.disabled  = true;
 
       pauseBtn.textContent = "中断";
-
       statusBox.textContent = "計測中…";
       statusBox.style.background = "#1976d2";
     }
 
     function finishMeasurement(){
       started = false;
-      paused = false;
+      paused  = false;
 
       stopAlert();
       wrap.classList.remove("open");
@@ -427,12 +389,11 @@
       startBtn.disabled = false;
       pauseBtn.disabled = true;
       stopBtn.disabled  = true;
-      saveBtn.disabled  = false;
     }
 
     function stopMeasurement(){
       started = false;
-      paused = false;
+      paused  = false;
 
       stopAlert();
       wrap.classList.remove("open");
@@ -443,14 +404,13 @@
       startBtn.disabled = false;
       pauseBtn.disabled = true;
       stopBtn.disabled  = true;
-      saveBtn.disabled  = (totalElapsed <= 0);
 
       pauseBtn.textContent = "中断";
     }
 
     /* ====== ボタン ====== */
     startBtn.addEventListener("click", async ()=>{
-      await unlockAudio(); // ← これがないとv4が鳴らないことがある
+      await unlockAudio();   // ここで音を解放
       startMeasurement();
     });
 
@@ -464,7 +424,7 @@
         statusBox.style.background = "#757575";
         pauseBtn.textContent = "再開";
       }else{
-        lastTs = null; // 再開時のdelta暴走防止
+        lastTs = null; // 再開時delta暴走防止
         statusBox.textContent = "再開！";
         statusBox.style.background = "#1976d2";
         pauseBtn.textContent = "中断";
@@ -475,39 +435,11 @@
       stopMeasurement();
     });
 
-    /* ====== CSV保存：4項目だけ（1行） ====== */
-    saveBtn.addEventListener("click", ()=>{
-      const iso = lastResultIso || new Date().toISOString();
-      const closedSec = Math.max(0, totalElapsed - openElapsed);
-      const rate = Math.round(openElapsed / Math.max(totalElapsed, 0.1) * 100);
-
-      const header = "date_iso,closed_time,open_time,open_rate_percent\n";
-      const row =
-        `${iso},${fmt(closedSec)},${fmt(openElapsed)},${rate}\n`;
-
-      const blob = new Blob([header + row], {type:"text/csv;charset=utf-8"});
-      const url = URL.createObjectURL(blob);
-
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `pokan_summary_${iso.replace(/[:.]/g,"-")}.csv`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-
-      statusBox.textContent = "CSVを保存しました ✅";
-      statusBox.style.background = "#26a69a";
-      setTimeout(()=>{
-        statusBox.textContent = "スタートを押してください";
-        statusBox.style.background = "#1976d2";
-      }, 900);
-    });
-
     // 初期表示
     statusBox.textContent = "準備中…（カメラ許可を確認してください）";
     statusBox.style.background = "#1976d2";
     resultDateEl.textContent = "—";
+    updateResultUI();
   </script>
 </body>
 </html>
